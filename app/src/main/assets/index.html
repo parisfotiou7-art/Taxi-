@@ -1,0 +1,643 @@
+
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111111">
+<title>TAXI MANAGER ΠΑΡΗΣ</title>
+<style>
+:root {
+  --bg:#101010;
+  --panel:#1c1c1c;
+  --gold:#d6ad55;
+  --text:#f5f5f5;
+  --muted:#999;
+  --red:#e45b5b;
+  --green:#48bd83;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+}
+header {
+  padding:22px 15px;
+  text-align:center;
+  background:#171717;
+  border-bottom:1px solid #493c24;
+}
+header h1 {
+  color:var(--gold);
+  font-size:23px;
+  margin:0;
+  letter-spacing:1px;
+}
+header p {color:#aaa;margin:7px 0 0;font-size:12px}
+nav {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  padding:10px;
+  background:#151515;
+}
+nav button {
+  padding:12px 4px;
+  background:#292929;
+  color:white;
+  border:1px solid #444;
+  border-radius:8px;
+  font-size:12px;
+}
+nav button.active {
+  background:var(--gold);
+  color:#111;
+  font-weight:bold;
+}
+main {padding:12px;max-width:700px;margin:auto}
+.page {display:none}
+.page.active {display:block}
+h2 {
+  color:var(--gold);
+  font-size:19px;
+  margin:12px 0;
+}
+.card {
+  background:var(--panel);
+  border:1px solid #333;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:12px;
+}
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.stat {
+  background:#252525;
+  border-radius:10px;
+  padding:14px;
+}
+.stat small {color:#aaa}
+.stat strong {
+  display:block;
+  font-size:20px;
+  margin-top:8px;
+}
+.green {color:var(--green)}
+.red {color:var(--red)}
+.gold {color:var(--gold)}
+label {
+  display:block;
+  color:#bbb;
+  font-size:13px;
+  margin:10px 0 5px;
+}
+input,select,textarea {
+  width:100%;
+  padding:12px;
+  background:#292929;
+  border:1px solid #444;
+  border-radius:8px;
+  color:white;
+  font-size:15px;
+}
+textarea {min-height:65px}
+button.action {
+  width:100%;
+  padding:13px;
+  margin-top:12px;
+  border:0;
+  border-radius:8px;
+  background:var(--gold);
+  color:#111;
+  font-weight:bold;
+  font-size:15px;
+}
+button.secondary {
+  background:#333;
+  color:white;
+  border:1px solid #555;
+}
+button.delete {
+  background:#612d2d;
+  color:white;
+  border:0;
+  padding:7px 10px;
+  border-radius:6px;
+}
+.item {
+  background:#252525;
+  border-radius:9px;
+  padding:12px;
+  margin-top:9px;
+  border-left:3px solid var(--gold);
+}
+.item small {color:#aaa}
+.item-top {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+}
+.row {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+.empty {color:#888;text-align:center;padding:20px}
+hr {border:0;border-top:1px solid #333;margin:15px 0}
+footer {
+  text-align:center;
+  color:#666;
+  font-size:11px;
+  padding:20px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>TAXI MANAGER</h1>
+  <p>ΠΑΡΗΣ • PROFESSIONAL TAXI MANAGEMENT</p>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('home',this)">ΑΡΧΙΚΗ</button>
+  <button onclick="showPage('finance',this)">ΟΙΚΟΝΟΜΙΚΑ</button>
+  <button onclick="showPage('customers',this)">ΠΕΛΑΤΕΣ</button>
+  <button onclick="showPage('routes',this)">ΔΡΟΜΟΛΟΓΙΑ</button>
+  <button onclick="showPage('history',this)">ΙΣΤΟΡΙΚΟ</button>
+  <button onclick="showPage('backup',this)">BACKUP</button>
+</nav>
+
+<main>
+
+<section id="home" class="page active">
+  <h2>Πίνακας ελέγχου</h2>
+  <div class="card">
+    <label>Επιλογή έτους</label>
+    <select id="homeYear" onchange="refresh()"></select>
+  </div>
+  <div class="grid">
+    <div class="stat">
+      <small>ΣΥΝΟΛΙΚΑ ΕΣΟΔΑ</small>
+      <strong class="green" id="homeIncome">0 €</strong>
+    </div>
+    <div class="stat">
+      <small>ΣΥΝΟΛΙΚΑ ΕΞΟΔΑ</small>
+      <strong class="red" id="homeExpense">0 €</strong>
+    </div>
+    <div class="stat">
+      <small>ΚΑΘΑΡΟ ΑΠΟΤΕΛΕΣΜΑ</small>
+      <strong class="gold" id="homeProfit">0 €</strong>
+    </div>
+    <div class="stat">
+      <small>ΠΕΛΑΤΕΣ</small>
+      <strong id="homeCustomers">0</strong>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Μηνιαία εικόνα</h2>
+    <div id="monthlyOverview"></div>
+  </div>
+</section>
+
+<section id="finance" class="page">
+  <h2>Οικονομικά στοιχεία</h2>
+  <div class="card">
+    <label>Έτος</label>
+    <select id="financeYear" onchange="renderFinance()"></select>
+    <label>Μήνας</label>
+    <select id="financeMonth" onchange="renderFinance()">
+      <option value="all">Όλο το έτος</option>
+      <option value="0">Ιανουάριος</option>
+      <option value="1">Φεβρουάριος</option>
+      <option value="2">Μάρτιος</option>
+      <option value="3">Απρίλιος</option>
+      <option value="4">Μάιος</option>
+      <option value="5">Ιούνιος</option>
+      <option value="6">Ιούλιος</option>
+      <option value="7">Αύγουστος</option>
+      <option value="8">Σεπτέμβριος</option>
+      <option value="9">Οκτώβριος</option>
+      <option value="10">Νοέμβριος</option>
+      <option value="11">Δεκέμβριος</option>
+    </select>
+  </div>
+
+  <div class="grid">
+    <div class="stat"><small>ΕΣΟΔΑ</small><strong class="green" id="fIncome">0 €</strong></div>
+    <div class="stat"><small>ΕΞΟΔΑ</small><strong class="red" id="fExpense">0 €</strong></div>
+  </div>
+  <div class="stat" style="margin-top:10px">
+    <small>ΚΑΘΑΡΟ ΑΠΟΤΕΛΕΣΜΑ</small>
+    <strong class="gold" id="fProfit">0 €</strong>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>Νέα καταχώρηση</h2>
+    <label>Είδος</label>
+    <select id="entryType">
+      <option value="income">Έσοδο</option>
+      <option value="expense">Έξοδο</option>
+    </select>
+    <label>Ποσό (€)</label>
+    <input id="entryAmount" type="number" min="0" step="0.01" placeholder="π.χ. 50">
+    <label>Κατηγορία</label>
+    <input id="entryCategory" placeholder="π.χ. Κούρσα, καύσιμα, service">
+    <label>Ημερομηνία</label>
+    <input id="entryDate" type="date">
+    <label>Περιγραφή</label>
+    <input id="entryDescription" placeholder="Προαιρετικά">
+    <button class="action" onclick="addEntry()">ΑΠΟΘΗΚΕΥΣΗ</button>
+  </div>
+  <div class="card">
+    <h2>Καταχωρήσεις</h2>
+    <div id="entriesList"></div>
+  </div>
+</section>
+
+<section id="customers" class="page">
+  <h2>Ιστορικό πελατών</h2>
+  <div class="card">
+    <label>Ονοματεπώνυμο</label>
+    <input id="customerName" placeholder="Όνομα πελάτη">
+    <label>Τηλέφωνο</label>
+    <input id="customerPhone" type="tel" placeholder="Τηλέφωνο">
+    <label>Σημειώσεις</label>
+    <textarea id="customerNotes" placeholder="Πληροφορίες πελάτη"></textarea>
+    <button class="action" onclick="addCustomer()">ΠΡΟΣΘΗΚΗ ΠΕΛΑΤΗ</button>
+  </div>
+  <div class="card">
+    <h2>Αποθηκευμένοι πελάτες</h2>
+    <div id="customersList"></div>
+  </div>
+</section>
+
+<section id="routes" class="page">
+  <h2>Δρομολόγια και προορισμοί</h2>
+  <div class="card">
+    <label>Προορισμός</label>
+    <input id="routeName" placeholder="π.χ. Αεροδρόμιο">
+    <label>Περιοχή / Διεύθυνση</label>
+    <input id="routeArea" placeholder="Προαιρετικά">
+    <button class="action" onclick="addRoute()">ΠΡΟΣΘΗΚΗ ΠΡΟΟΡΙΣΜΟΥ</button>
+  </div>
+  <div class="card">
+    <h2>Λίστα προορισμών</h2>
+    <p style="color:#999;font-size:12px">Πάτησε «Καταχώρηση επίσκεψης» κάθε φορά που πηγαίνεις σε έναν προορισμό.</p>
+    <div id="routesList"></div>
+  </div>
+</section>
+
+<section id="history" class="page">
+  <h2>Ιστορικό κινήσεων</h2>
+  <div class="card">
+    <label>Έτος</label>
+    <select id="historyYear" onchange="renderHistory()"></select>
+    <div id="historyList"></div>
+  </div>
+</section>
+
+<section id="backup" class="page">
+  <h2>Αντίγραφο ασφαλείας</h2>
+  <div class="card">
+    <p>Κράτησε αντίγραφο των δεδομένων σου για να μπορείς να τα επαναφέρεις αν αλλάξεις κινητό.</p>
+    <button class="action" onclick="exportData()">ΕΞΑΓΩΓΗ ΑΝΤΙΓΡΑΦΟΥ</button>
+    <hr>
+    <label>Επαναφορά από αρχείο JSON</label>
+    <input type="file" id="backupFile" accept=".json,application/json">
+    <button class="action secondary" onclick="importData()">ΕΠΑΝΑΦΟΡΑ ΔΕΔΟΜΕΝΩΝ</button>
+  </div>
+  <div class="card">
+    <h2>Πληροφορίες</h2>
+    <p>Τα δεδομένα αποθηκεύονται τοπικά στη συσκευή σου.</p>
+    <p style="color:#aaa;font-size:12px">Μην διαγράψεις τα δεδομένα της εφαρμογής χωρίς να έχεις κρατήσει αντίγραφο ασφαλείας.</p>
+  </div>
+</section>
+
+</main>
+<footer>TAXI MANAGER ΠΑΡΗΣ • VERSION 1.0</footer>
+
+<script>
+const KEY = "taxi_manager_paris_v1";
+
+let db = {
+  entries: [],
+  customers: [],
+  routes: []
+};
+
+const months = [
+  "Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος",
+  "Μάιος","Ιούνιος","Ιούλιος","Αύγουστος",
+  "Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"
+];
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      db.entries = Array.isArray(data.entries) ? data.entries : [];
+      db.customers = Array.isArray(data.customers) ? data.customers : [];
+      db.routes = Array.isArray(data.routes) ? data.routes : [];
+    }
+  } catch(e) {
+    alert("Υπήρξε πρόβλημα ανάγνωσης των αποθηκευμένων δεδομένων.");
+  }
+}
+
+function saveData() {
+  localStorage.setItem(KEY, JSON.stringify(db));
+}
+
+function money(value) {
+  return Number(value || 0).toLocaleString("el-GR", {
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  }) + " €";
+}
+
+function showPage(id, btn) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  refresh();
+}
+
+function getYear(date) {
+  return Number(date.slice(0,4));
+}
+
+function getMonth(date) {
+  return Number(date.slice(5,7)) - 1;
+}
+
+function totals(year, month) {
+  let income = 0, expense = 0;
+  db.entries.forEach(e => {
+    if (getYear(e.date) !== Number(year)) return;
+    if (month !== "all" && getMonth(e.date) !== Number(month)) return;
+    if (e.type === "income") income += e.amount;
+    else expense += e.amount;
+  });
+  return {income, expense, profit:income-expense};
+}
+
+function fillYears() {
+  const years = new Set([new Date().getFullYear()]);
+  db.entries.forEach(e => years.add(getYear(e.date)));
+  const list = [...years].sort((a,b)=>b-a);
+
+  ["homeYear","financeYear","historyYear"].forEach(id => {
+    const el = document.getElementById(id);
+    const old = el.value;
+    el.innerHTML = "";
+    list.forEach(y => {
+      const op = document.createElement("option");
+      op.value = y;
+      op.textContent = y;
+      el.appendChild(op);
+    });
+    if (list.includes(Number(old))) el.value = old;
+  });
+}
+
+function refresh() {
+  fillYears();
+  renderHome();
+  renderFinance();
+  renderCustomers();
+  renderRoutes();
+  renderHistory();
+}
+
+function renderHome() {
+  const year = document.getElementById("homeYear").value;
+  const t = totals(year, "all");
+  document.getElementById("homeIncome").textContent = money(t.income);
+  document.getElementById("homeExpense").textContent = money(t.expense);
+  document.getElementById("homeProfit").textContent = money(t.profit);
+  document.getElementById("homeCustomers").textContent = db.customers.length;
+
+  document.getElementById("monthlyOverview").innerHTML =
+    months.map((m,i) => {
+      const x = totals(year,i);
+      return `<div class="item">
+        <div class="item-top"><b>${m}</b><b class="gold">${money(x.profit)}</b></div>
+        <small>Έσοδα: ${money(x.income)} • Έξοδα: ${money(x.expense)}</small>
+      </div>`;
+    }).join("");
+}
+
+function addEntry() {
+  const type = document.getElementById("entryType").value;
+  const amount = Number(document.getElementById("entryAmount").value);
+  const category = document.getElementById("entryCategory").value.trim();
+  const date = document.getElementById("entryDate").value;
+  const description = document.getElementById("entryDescription").value.trim();
+
+  if (!amount || amount <= 0 || !date || !category) {
+    alert("Συμπλήρωσε ποσό, κατηγορία και ημερομηνία.");
+    return;
+  }
+
+  db.entries.push({
+    id:Date.now(),
+    type, amount, category, date, description
+  });
+
+  saveData();
+  document.getElementById("entryAmount").value = "";
+  document.getElementById("entryCategory").value = "";
+  document.getElementById("entryDescription").value = "";
+  refresh();
+  alert("Η καταχώρηση αποθηκεύτηκε.");
+}
+
+function renderFinance() {
+  const year = document.getElementById("financeYear").value;
+  const month = document.getElementById("financeMonth").value;
+  const t = totals(year,month);
+
+  document.getElementById("fIncome").textContent = money(t.income);
+  document.getElementById("fExpense").textContent = money(t.expense);
+  document.getElementById("fProfit").textContent = money(t.profit);
+
+  const list = db.entries
+    .filter(e => getYear(e.date) === Number(year))
+    .filter(e => month === "all" || getMonth(e.date) === Number(month))
+    .sort((a,b)=>b.date.localeCompare(a.date));
+
+  document.getElementById("entriesList").innerHTML = list.length ?
+    list.map(e => `<div class="item">
+      <div class="item-top">
+        <b class="${e.type==='income'?'green':'red'}">${e.type==='income'?'ΕΣΟΔΟ':'ΕΞΟΔΟ'} • ${money(e.amount)}</b>
+        <button class="delete" onclick="deleteEntry(${e.id})">Διαγραφή</button>
+      </div>
+      <p>${escapeHTML(e.category)}</p>
+      <small>${e.date} ${e.description ? "• "+escapeHTML(e.description) : ""}</small>
+    </div>`).join("") : '<div class="empty">Δεν υπάρχουν καταχωρήσεις.</div>';
+}
+
+function deleteEntry(id) {
+  if (!confirm("Να διαγραφεί αυτή η καταχώρηση;")) return;
+  db.entries = db.entries.filter(e=>e.id!==id);
+  saveData();
+  refresh();
+}
+
+function addCustomer() {
+  const name = document.getElementById("customerName").value.trim();
+  const phone = document.getElementById("customerPhone").value.trim();
+  const notes = document.getElementById("customerNotes").value.trim();
+
+  if (!name) {
+    alert("Συμπλήρωσε το όνομα του πελάτη.");
+    return;
+  }
+
+  db.customers.push({id:Date.now(),name,phone,notes});
+  saveData();
+  document.getElementById("customerName").value="";
+  document.getElementById("customerPhone").value="";
+  document.getElementById("customerNotes").value="";
+  refresh();
+}
+
+function renderCustomers() {
+  const list = document.getElementById("customersList");
+  list.innerHTML = db.customers.length ? db.customers.map(c=>`
+    <div class="item">
+      <div class="item-top">
+        <b>${escapeHTML(c.name)}</b>
+        <button class="delete" onclick="deleteCustomer(${c.id})">Διαγραφή</button>
+      </div>
+      <p>${escapeHTML(c.phone || "Χωρίς τηλέφωνο")}</p>
+      <small>${escapeHTML(c.notes || "")}</small>
+    </div>`).join("") : '<div class="empty">Δεν υπάρχουν πελάτες.</div>';
+}
+
+function deleteCustomer(id) {
+  if (!confirm("Να διαγραφεί ο πελάτης;")) return;
+  db.customers = db.customers.filter(c=>c.id!==id);
+  saveData();
+  refresh();
+}
+
+function addRoute() {
+  const name = document.getElementById("routeName").value.trim();
+  const area = document.getElementById("routeArea").value.trim();
+
+  if (!name) {
+    alert("Συμπλήρωσε τον προορισμό.");
+    return;
+  }
+
+  db.routes.push({id:Date.now(),name,area,count:0});
+  saveData();
+  document.getElementById("routeName").value="";
+  document.getElementById("routeArea").value="";
+  refresh();
+}
+
+function visitRoute(id) {
+  const route = db.routes.find(r=>r.id===id);
+  if (!route) return;
+  route.count++;
+  saveData();
+  renderRoutes();
+}
+
+function deleteRoute(id) {
+  if (!confirm("Να διαγραφεί ο προορισμός;")) return;
+  db.routes = db.routes.filter(r=>r.id!==id);
+  saveData();
+  refresh();
+}
+
+function renderRoutes() {
+  const list = document.getElementById("routesList");
+  list.innerHTML = db.routes.length ? db.routes.map(r=>`
+    <div class="item">
+      <div class="item-top">
+        <b>${escapeHTML(r.name)}</b>
+        <button class="delete" onclick="deleteRoute(${r.id})">Διαγραφή</button>
+      </div>
+      <small>${escapeHTML(r.area || "")}</small>
+      <p class="gold">Επισκέψεις: ${r.count}</p>
+      <button class="action" onclick="visitRoute(${r.id})">ΚΑΤΑΧΩΡΗΣΗ ΕΠΙΣΚΕΨΗΣ</button>
+    </div>`).join("") : '<div class="empty">Δεν υπάρχουν προορισμοί.</div>';
+}
+
+function renderHistory() {
+  const year = document.getElementById("historyYear").value;
+  const list = db.entries
+    .filter(e=>getYear(e.date)===Number(year))
+    .sort((a,b)=>b.date.localeCompare(a.date));
+
+  document.getElementById("historyList").innerHTML = list.length ?
+    list.map(e=>`
+      <div class="item">
+        <b class="${e.type==='income'?'green':'red'}">${e.type==='income'?'Έσοδο':'Έξοδο'}: ${money(e.amount)}</b>
+        <p>${escapeHTML(e.category)}</p>
+        <small>${e.date}</small>
+      </div>`).join("") : '<div class="empty">Δεν υπάρχει ιστορικό για αυτό το έτος.</div>';
+}
+
+function escapeHTML(value) {
+  return String(value || "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(db,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "taxi-manager-paris-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  const file = document.getElementById("backupFile").files[0];
+  if (!file) {
+    alert("Επίλεξε πρώτα αρχείο αντιγράφου.");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!Array.isArray(data.entries) ||
+          !Array.isArray(data.customers) ||
+          !Array.isArray(data.routes)) {
+        throw new Error("Invalid backup");
+      }
+      if (!confirm("Η επαναφορά θα αντικαταστήσει τα υπάρχοντα δεδομένα. Συνέχεια;")) return;
+      db = data;
+      saveData();
+      refresh();
+      alert("Η επαναφορά ολοκληρώθηκε.");
+    } catch(e) {
+      alert("Το αρχείο δεν είναι έγκυρο αντίγραφο ασφαλείας.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+loadData();
+document.getElementById("entryDate").value = new Date().toISOString().slice(0,10);
+refresh();
+</script>
+
+</body>
+</html>
